@@ -1,0 +1,32 @@
+<html>
+  <head>
+    <title>Wide landscape</title>
+    <link rel="stylesheet" href="styles.css"></link>
+    <style>
+      img {
+        max-height: 3in;
+        max-width: 100%;
+        margin: auto;
+        display: block;
+        text-align: center;
+      }
+      @page {
+         background: rgb{{ color }};
+      }
+        
+    </style>
+  </head>
+  <body style="background: rgb{{ color }}">
+    <div id="debug">Wide landscape - {{ section }}</div>
+    <div style="height: 3in; overflow:hidden;">
+      <p>
+        <span class="first">{{ page_words.0.0 }}</span>{{ page_words.0[1:] }}
+        {% for word in words[1:110] %}
+           {{ word }}
+        {% endfor %}
+      </p>
+    </div
+    <!-- Wide image at base -->
+    <img src="{{ image.url }}" style="position:absolute; bottom:0;"/>
+  </body>
+</html>
