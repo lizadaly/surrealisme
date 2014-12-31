@@ -1,0 +1,53 @@
+@page {
+    size: 10in 8in;
+    /*
+    @top {
+        content: flow(debug);
+    }
+    */
+    
+}
+@page chapters:left { /* left page setup */
+  margin: 0.75in 0.75in 1in 0.62in;
+  padding-left: 0.5in;
+}
+@page chapters:right { /* right page setup */
+  margin: 0.75in 0.62in 1in 0.75in;
+  padding-right: 0.5in;
+}
+
+#debug {
+    flow: static(debug);
+    font-family: "Courier";
+}
+@font-face {
+    font-family: "Voynich 123";
+    src: url("file:///Users/liza/github/personal/nanogenmo/seraphs/resources/voynich-1.23-webfont.ttf");
+}
+body {
+    page:chapters;
+    margin:0;
+    font-family: "Voynich 123";
+    font-size: .2in;
+    color: sienna;
+}
+img {
+    margin: .25in;
+}
+.first {
+    float: left;
+    font-size: 30pt;
+    line-height: 32pt;
+}
+h1 {
+    bookmark-level: 1;
+    bookmark-state: closed;
+/*    bookmark-label: 'Folio'; */
+}
+figcaption {
+    font-size: 12pt;
+    
+}
+p {
+
+}
