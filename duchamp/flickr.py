@@ -23,9 +23,10 @@ import random
 import requests
 from glob import glob
 import cv2
+import pickle
 
 from secret import FLICKR_KEY, FLICKR_SECRET
-from duchamp import BUILD_DIR, CASCADE_FILE
+from duchamp import BUILD_DIR, CASCADE_FILE, CACHE_DIR
 
 IA_METADATA_URL = 'https://archive.org/metadata/{}'
 
@@ -33,6 +34,8 @@ FLICKR_USER_ID = '126377022@N07'  # The Internet Archive's Flickr ID
 MAX_PHOTOS_PER_SECTION = 5
 MIN_LIGHTNESS = 200  # Minimize lightness value of the image's primary (background color)
 MIN_SIZE = 300  # Minimum length or width of the image, in pixels
+
+CACHE_FILE = os.path.join(CACHE_DIR, 'photos.p')
 
 class BookImage(object):
     def __init__(self):
@@ -51,7 +54,6 @@ def flickr_search(text, tags='bookdecade1920'):
     book_images = []
 
     flickr = flickrapi.FlickrAPI(FLICKR_KEY, FLICKR_SECRET, format='etree', cache=True) 
-    flickr.cache = flickrapi.SimpleCache(timeout=3000, max_entries=2000)
    
     search = flickr.walk(user_id=FLICKR_USER_ID,
                          per_page=200,
@@ -95,8 +97,15 @@ def flickr_search(text, tags='bookdecade1920'):
         )
 
         image = BookImage()
-        image.cv_image = cv_image
-        image.metadata = photo
+        image._cv_image = cv_image
+        image._metadata = photo
+
+        # Save off some metadata about it 
+        img_filename = "{}.png".format(photo.get('id'))
+        img_dir = os.path.join(BUILD_DIR, img_filename)
+
+        image._img_filename = img_filename
+        image._img_dir = img_dir
         
         # Debug by showing the images as we move through them
         cv2.imshow("noface", small_cv_image)        
@@ -114,20 +123,6 @@ def flickr_search(text, tags='bookdecade1920'):
         else:
             photos['non_faces'].append(image)  # It's not a face
             
-        # Roll back to use Pillow (FIXME) 
-
-        # Save off some metadata about it 
-        img_filename = "{}.png".format(photo.get('id'))
-        img_dir = os.path.join(BUILD_DIR, img_filename)
-
-        image._img_filename = img_filename
-        image._img_dir = img_dir
-
-        img_io.seek(0)
-        im = Image.open(img_io)
-        
-        image._im = im  #  Remember the Pillow implementation (FIXME)
-
         if count_faces > MAX_PHOTOS_PER_SECTION:
             break
         
@@ -135,6 +130,11 @@ def flickr_search(text, tags='bookdecade1920'):
             break
         count += 1
         
+    pickle.dump(photos, CACHE_FILE)
+    return photos
+
+
+def process_photos(photos):
     pprint(photos)
     
     for photo in photos['faces']:
@@ -191,5 +191,13 @@ if __name__ == '__main__':
     files = glob(os.path.join(BUILD_DIR, '*'))
     for f in files:
         os.unlink(f)
-        
-    flickr_search(('fish', ))
+
+
+    if os.path.exists(CACHE_FILE):
+        print "Loading from cache..."
+        photos = pickle.load(open(CACHE_FILE))
+    else:
+        photos = flickr_search(('fish', ))
+    process_photos(photos)
+    
+    
