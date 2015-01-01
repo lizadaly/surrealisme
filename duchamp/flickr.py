@@ -24,6 +24,7 @@ import requests
 from glob import glob
 import cv2
 import pickle
+import xml.etree.ElementTree as etree
 
 from secret import FLICKR_KEY, FLICKR_SECRET
 from duchamp import BUILD_DIR, CASCADE_FILE, CACHE_DIR
@@ -34,6 +35,9 @@ FLICKR_USER_ID = '126377022@N07'  # The Internet Archive's Flickr ID
 MAX_PHOTOS_PER_SECTION = 5
 MIN_LIGHTNESS = 200  # Minimize lightness value of the image's primary (background color)
 MIN_SIZE = 300  # Minimum length or width of the image, in pixels
+
+if not os.path.exists(CACHE_DIR):
+    os.makedirs(CACHE_DIR)
 
 CACHE_FILE = os.path.join(CACHE_DIR, 'photos.p')
 
@@ -98,7 +102,7 @@ def flickr_search(text, tags='bookdecade1920'):
 
         image = BookImage()
         image._cv_image = cv_image
-        image._metadata = photo
+        image._metadata = etree.tostring(photo, encoding='utf8')
 
         # Save off some metadata about it 
         img_filename = "{}.png".format(photo.get('id'))
@@ -130,7 +134,7 @@ def flickr_search(text, tags='bookdecade1920'):
             break
         count += 1
         
-    pickle.dump(photos, CACHE_FILE)
+    pickle.dump(photos, open(CACHE_FILE, 'w'))
     return photos
 
 
@@ -139,8 +143,6 @@ def process_photos(photos):
     
     for photo in photos['faces']:
 
-        im = photo._im
-    
         if not os.path.exists(BUILD_DIR):
             os.makedirs(BUILD_DIR)
 
@@ -184,8 +186,6 @@ def process_photos(photos):
 #         im.save(img_dir)
 
 
-    return book_images
-
 if __name__ == '__main__':
     # Delete previous generated output file
     files = glob(os.path.join(BUILD_DIR, '*'))
@@ -197,7 +197,7 @@ if __name__ == '__main__':
         print "Loading from cache..."
         photos = pickle.load(open(CACHE_FILE))
     else:
-        photos = flickr_search(('fish', ))
+        photos = flickr_search(('woman', ))
     process_photos(photos)
     
     
