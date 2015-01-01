@@ -12,6 +12,7 @@ requests_log.propagate = False
 requests_log = logging.getLogger("flickrapi.core")
 requests_log.propagate = False
 
+from pprint import pprint
 from PIL import Image, ImageChops, ImageOps
 from cStringIO import StringIO
 import numpy as np
@@ -24,23 +25,22 @@ from glob import glob
 import cv2
 
 from secret import FLICKR_KEY, FLICKR_SECRET
-from duchamp import BUILD_DIR
+from duchamp import BUILD_DIR, CASCADE_FILE
 
 IA_METADATA_URL = 'https://archive.org/metadata/{}'
 
 FLICKR_USER_ID = '126377022@N07'  # The Internet Archive's Flickr ID
-MAX_PHOTOS_PER_SECTION = 20
+MAX_PHOTOS_PER_SECTION = 5
 MIN_LIGHTNESS = 200  # Minimize lightness value of the image's primary (background color)
 MIN_SIZE = 300  # Minimum length or width of the image, in pixels
 
 class BookImage(object):
-    def __init__(self, url, width, height, primary_color, src):
-        self.url = url
-        self.width = width
-        self.height = height
-        self.primary_color = primary_color
-        self.src = src
+    def __init__(self):
+        pass
 
+    def __repr__(self):
+        return self._img_filename
+    
 def create_opencv_image_from_stringio(img_stream, cv2_img_flag=0):
     img_stream.seek(0)
     img_array = np.asarray(bytearray(img_stream.read()), dtype=np.uint8)
@@ -50,8 +50,10 @@ def flickr_search(text, tags='bookdecade1920'):
     '''Request images from the IA Flickr account with the given century tags and the related text'''
     book_images = []
 
-    flickr = flickrapi.FlickrAPI(FLICKR_KEY, FLICKR_SECRET, format='etree', cache=True)
-    photos = flickr.walk(user_id=FLICKR_USER_ID,
+    flickr = flickrapi.FlickrAPI(FLICKR_KEY, FLICKR_SECRET, format='etree', cache=True) 
+    flickr.cache = flickrapi.SimpleCache(timeout=3000, max_entries=2000)
+   
+    search = flickr.walk(user_id=FLICKR_USER_ID,
                          per_page=200,
                          text=text,
                          tag_mode='all',
@@ -59,127 +61,128 @@ def flickr_search(text, tags='bookdecade1920'):
                          extras='url_o',
                          sort='relevance')
 
+    count_faces = 0
     count = 0
-    last_image = None
-    face_cascade = cv2.CascadeClassifier('/usr/local/Cellar/opencv/2.4.9/share/OpenCV/haarcascades/haarcascade_frontalface_default.xml')
+    face_cascade = cv2.CascadeClassifier(CASCADE_FILE)
+
+    photos = {}
+    photos['faces'] = []  # A set of known-faces
+    photos['non_faces'] = []  # Items that aren't faces
+    photos['text'] = []  # A set of photos that contain line art or text
     
-    # Randomize the result set
-    for index, photo in enumerate(photos):
-        # Ensure that images are the correct minimize size
+    for photo in search:
+        # Ensure that images are the correct minimum size
         if int(photo.get('height_o')) < MIN_SIZE or int(photo.get('width_o') < MIN_SIZE):
             continue
 
-        if index % 2 == 0:  # Only grab odd ones
-            last_image = photo.get('url_o')
-            continue
-        if not last_image:
-            continue
-        
+        # Get the source file directly
         img1_url = photo.get('url_o')
         img1_file = requests.get(img1_url, stream=True)
         img1_file.raw.decode_content = True
+
+        # Create an in-memory representation we can pass to various image libraries
         img_io = StringIO(img1_file.raw.read())
         cv_image = create_opencv_image_from_stringio(img_io)
-        cv_image = cv2.resize(cv_image, (0,0), fx=0.25, fy=0.25)                 
+
+        # The CV image is best if it's viewable, and its size doesn't really matter for computation 
+        small_cv_image = cv2.resize(cv_image, (0,0), fx=0.25, fy=0.25)                 
         faces = face_cascade.detectMultiScale(
-            cv_image,
+            small_cv_image,
             scaleFactor=1.4,
-            minNeighbors=4,
-            minSize=(25, 25),
+            minNeighbors=4,  # Minimize errors
+            minSize=(25, 25),  # 25% of the image has to be a 'face-like' thing
             flags = cv2.cv.CV_HAAR_SCALE_IMAGE
         )
-        cv2.imshow("noface", cv_image)        
-        if len(faces) == 0:
-            print "Skipping because no faces found"
-            continue
 
-        for (x, y, w, h) in faces:
-            cv2.rectangle(cv_image, (x, y), (x+w, y+h), (255, 255, 255), 2)
-
-        cv2.imshow("face", cv_image)
+        image = BookImage()
+        image.cv_image = cv_image
+        image.metadata = photo
         
-        img_io.seek(0)
-        im = Image.open(img_io)
+        # Debug by showing the images as we move through them
+        cv2.imshow("noface", small_cv_image)        
+        if len(faces) != 0:
+            # Put this in the face bucket
+            photos['faces'].append(image)
+            count_faces += 1
+            
+            for (x, y, w, h) in faces:
+                cv2.rectangle(small_cv_image, (x, y), (x+w, y+h), (255, 255, 255), 2)
 
-        img2_url = last_image
-        img2_file = requests.get(img2_url, stream=True)
-        img2_file.raw.decode_content = True
-        im2 = Image.open(StringIO(img2_file.raw.read()))
-        
+            # Debug showing the face
+            cv2.imshow("face", small_cv_image)
+
+        else:
+            photos['non_faces'].append(image)  # It's not a face
+            
+        # Roll back to use Pillow (FIXME) 
+
+        # Save off some metadata about it 
         img_filename = "{}.png".format(photo.get('id'))
         img_dir = os.path.join(BUILD_DIR, img_filename)
 
+        image._img_filename = img_filename
+        image._img_dir = img_dir
+
+        img_io.seek(0)
+        im = Image.open(img_io)
+        
+        image._im = im  #  Remember the Pillow implementation (FIXME)
+
+        if count_faces > MAX_PHOTOS_PER_SECTION:
+            break
+        
+        if count > 10:
+            break
+        count += 1
+        
+    pprint(photos)
+    
+    for photo in photos['faces']:
+
+        im = photo._im
+    
         if not os.path.exists(BUILD_DIR):
             os.makedirs(BUILD_DIR)
 
-
-        
         # Main colors
-        try:
-            d = im.getcolors(im.size[0] * im.size[1])
-            # Image 1 should be a photograph
-            if len(d) < 20000:
-                continue
-            colors1 = max(d)[1] 
-            hls1 = colorsys.rgb_to_hls(colors1[0], colors1[1], colors1[2])
-            lightness1 = int(hls1[1])
+#        try:
+#            d = im.getcolors(im.size[0] * im.size[1])
+#
+#            colors1 = max(d)[1] 
+#            hls1 = colorsys.rgb_to_hls(colors1[0], colors1[1], colors1[2])
+#            lightness1 = int(hls1[1])
 
-            colors2 = max(im2.getcolors(im2.size[0] * im2.size[1]))[1]  # 2nd value in the tuple is the RGB color set
-            hls2 = colorsys.rgb_to_hls(colors2[0], colors2[1], colors2[2])
-            lightness2 = int(hls2[1])
-        except:
-            continue
+#        except:
+#            continue
 
-        print "Found {} faces in {}".format(len(faces), img_filename)
+#        im.save(img_dir)
 
-        window = cv2.namedWindow('face', cv2.WINDOW_NORMAL)
-        
+#         # Fit the smaller to the larger
+#         if im.size[0] + im.size[1] > im2.size[0] + im2.size[1]:
+#             im2 = ImageOps.fit(im2, im.size)
+#         else:
+#             im = ImageOps.fit(im, im2.size)
 
-        #print "lightness 1: {}".format(lightness1)
-        #print "lightness 2: {}".format(lightness2)
-        #print img_filename
-        im.save(img_dir)
+#         print im.size
+#         print im2.size
+#         # composite the corresponding image from the first set
+#         if lightness1 == lightness2:
+#             im = ImageChops.blend(im, im2, 1)
+#             img_dir = os.path.join(BUILD_DIR, 'blend-' + img_filename)
+#         elif lightness1 > lightness2:
+#             im = ImageChops.subtract(im, im2)
+#             #im = ImageChops.screen(im, im2)
+#             im = ImageOps.solarize(im, 200)            
+#             im = ImageOps.grayscale(im)
+#             img_dir = os.path.join(BUILD_DIR, 'subtract-' + img_filename)            
+#         else:
+#             im = ImageChops.multiply(im, im2)
+#             img_dir = os.path.join(BUILD_DIR, 'multiply-' + img_filename)
 
-        # Fit the smaller to the larger
-        if im.size[0] + im.size[1] > im2.size[0] + im2.size[1]:
-            im2 = ImageOps.fit(im2, im.size)
-        else:
-            im = ImageOps.fit(im, im2.size)
+# #        im = ImageOps.grayscale(im)
+#         im = ImageOps.autocontrast(im)
+#         im.save(img_dir)
 
-        print im.size
-        print im2.size
-        # composite the corresponding image from the first set
-        if lightness1 == lightness2:
-            im = ImageChops.blend(im, im2, 1)
-            img_dir = os.path.join(BUILD_DIR, 'blend-' + img_filename)
-        elif lightness1 > lightness2:
-            im = ImageChops.subtract(im, im2)
-            #im = ImageChops.screen(im, im2)
-            im = ImageOps.solarize(im, 200)            
-            im = ImageOps.grayscale(im)
-            img_dir = os.path.join(BUILD_DIR, 'subtract-' + img_filename)            
-        else:
-            im = ImageChops.multiply(im, im2)
-            img_dir = os.path.join(BUILD_DIR, 'multiply-' + img_filename)
-
-#        im = ImageOps.grayscale(im)
-        im = ImageOps.autocontrast(im)
-        im.save(img_dir)
-
-        src = 'https://www.flickr.com/photos/{}/{}'.format(photo.get('owner'), photo.get('id'))
-        book_images.append(BookImage(url=img_filename,
-                                     width=im.size[0],
-                                     height=im.size[1],
-                                     primary_color=None,
-                                     src=src))
-
-        
-        count += 1
-        if count > MAX_PHOTOS_PER_SECTION:
-            break
-
-    if count < MAX_PHOTOS_PER_SECTION:
-        logging.warn("Did not get enough images for section {}: only {}".format(text, count))
 
     return book_images
 
@@ -189,4 +192,4 @@ if __name__ == '__main__':
     for f in files:
         os.unlink(f)
         
-    flickr_search(('portrait', 'fish', ))
+    flickr_search(('fish', ))
