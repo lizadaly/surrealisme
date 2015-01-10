@@ -1,5 +1,8 @@
-random.chance: A procedurally generated surrealist photoset
+random.chance
 =============
+
+A procedurally generated surrealist photoset
+--------------
 
 Attempt to generate images that resemble surrealist portrait photomontages in the style of Man Ray. Uses the following resources:
 
@@ -62,5 +65,12 @@ Example output
 ![Page](examples/page8.jpg)
 ![Page](examples/page9.jpg)
 ![Page](examples/page10.jpg)
+![Page](examples/page11.jpg)
+![Page](examples/page12.jpg)
+![Page](examples/page13.jpg)
+![Page](examples/page14.jpg)
+![Page](examples/page15.jpg)
+![Page](examples/page16.jpg)
+![Page](examples/page17.jpg)
 
 
