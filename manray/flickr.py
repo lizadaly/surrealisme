@@ -12,14 +12,12 @@ requests_log.propagate = False
 requests_log = logging.getLogger("flickrapi.core")
 requests_log.propagate = False
 
-from pprint import pprint
 from PIL import Image, ImageChops, ImageOps, ImageStat, ImageFilter
 import math
 from StringIO import StringIO
 import numpy as np
-import colorsys
 import flickrapi
-import os.path, os
+import os.path, os 
 import random
 import requests
 from glob import glob
@@ -28,12 +26,12 @@ import pickle
 import xml.etree.ElementTree as etree
 
 from secret import FLICKR_KEY, FLICKR_SECRET
-from duchamp import BUILD_DIR, CASCADE_FILE, CACHE_DIR
+from manray import BUILD_DIR, CASCADE_FILE, CACHE_DIR
 
 IA_METADATA_URL = 'https://archive.org/metadata/{}'
 
 FLICKR_USER_ID = '126377022@N07'  # The Internet Archive's Flickr ID
-MAX_PHOTOS_PER_SECTION = 20
+MAX_PHOTOS_PER_SECTION = 50
 MIN_LIGHTNESS = 200  # Minimize lightness value of the image's primary (background color)
 MIN_SIZE = 1000  # Minimum length or width of the image, in pixels
 
@@ -54,9 +52,11 @@ def create_opencv_image_from_stringio(img_stream, cv2_img_flag=0):
     img_array = np.asarray(bytearray(img_stream.read()), dtype=np.uint8)
     return cv2.imdecode(img_array, cv2_img_flag)
 
-def flickr_search(text, tags=('bookdecade1890','bookdecade1880','bookdecade1900','bookdecade1910')):
-    '''Request images from the IA Flickr account with the given century tags and the related text'''
-    book_images = []
+def flickr_search(text, tags=('bookdecade1880',
+                              'bookdecade1890',
+                              'bookdecade1930',
+                              'bookdecade1920')):
+    '''Request images from the IA Flickr account with the given decade tags and the related text'''
 
     flickr = flickrapi.FlickrAPI(FLICKR_KEY, FLICKR_SECRET, format='etree', cache=True) 
    
@@ -95,9 +95,9 @@ def flickr_search(text, tags=('bookdecade1890','bookdecade1880','bookdecade1900'
         small_cv_image = cv2.resize(cv_image, (0,0), fx=0.25, fy=0.25)                 
         faces = face_cascade.detectMultiScale(
             small_cv_image,
-            scaleFactor=1.1,
+            scaleFactor=1.4,
             minNeighbors=4,  # Minimize errors
-            minSize=(25, 25),  # 25% of the image has to be a 'face-like' thing
+            minSize=(40, 40),  # 25% of the image has to be a 'face-like' thing
             flags = cv2.cv.CV_HAAR_SCALE_IMAGE
         )
 
@@ -150,7 +150,7 @@ def process_photos(photos):
     random.shuffle(photos['non_faces'])
     random.shuffle(photos['faces'])
     
-    for photo in photos['faces']:
+    for photo in photos['non_faces']:
 
         if not os.path.exists(BUILD_DIR):
             os.makedirs(BUILD_DIR)
@@ -159,11 +159,11 @@ def process_photos(photos):
         # Find one that's very different
         method = cv2.cv.CV_COMP_BHATTACHARYYA
         
-        for p2 in list(photos['non_faces']):
+        for p2 in photos['non_faces']:
             hist2 = cv2.calcHist([p2._cv_image],[0],None,[256],[0,256])
             # Smaller (0) is more similar than very different (1)
             difference = cv2.compareHist(hist, hist2, method)
-            if difference > 0.6:
+            if difference > 0.5:
                 print "Difference was {}".format(difference)
                 
                 # Choose this image
@@ -178,15 +178,13 @@ def process_photos(photos):
 
                 try:
                     brightness1 = brightness(im)
-                    #print "brightness1: {}".format(brightness1)
                     brightness2 = brightness(im2)
-                    #print "brightness2: {}".format(brightness2)
                 except:
                     continue
                 if brightness1 < brightness2:
                     if random.randint(1, 10) < 5:
                         im = ImageOps.solarize(im)
-                        im = im.filter(ImageFilter.GaussianBlur(2))
+                        im = im.filter(ImageFilter.GaussianBlur(random.randint(1,5)))
                         im = ImageOps.grayscale(im)
                         im2 = ImageOps.grayscale(im2)                
                     im = im.filter(ImageFilter.SMOOTH_MORE)                                        
@@ -206,12 +204,6 @@ def process_photos(photos):
                 im = ImageOps.autocontrast(im)
                 im.save(img_dir)
                 break
-            
-                # Apply an adaptive histogram transformation to improve the final image
-                #cv2.imshow('normal', photo._cv_image)
-                #clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
-                #photo._cv_image = clahe.apply(photo._cv_image)
-
 
 if __name__ == '__main__':
     # Delete previous generated output file
@@ -224,7 +216,11 @@ if __name__ == '__main__':
         print "Loading from cache..."
         photos = pickle.load(open(CACHE_FILE))
     else:
-        photos = flickr_search(('female'))
+        # Things that worked well here: 'portrait', 'woman', 'cats'
+        # Try to exclude things that come in big groups (yearbooks), too many famous faces (Lincoln),
+        # and really gross things (pictures of diseased people)
+        photos = flickr_search('advertising -yearbook -class -disease -lincoln')
+
     process_photos(photos)
     
     

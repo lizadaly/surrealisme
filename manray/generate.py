@@ -17,9 +17,9 @@ import shutil
 import subprocess
 
 from jinja2 import Environment, PackageLoader
-from duchamp import BUILD_DIR, THIS_DIR, CACHE_DIR
+from manray import BUILD_DIR, THIS_DIR, CACHE_DIR
 
-env = Environment(loader=PackageLoader('duchamp', 'templates'))
+env = Environment(loader=PackageLoader('manray', 'templates'))
 
 BOOK_SECTIONS = ('',)
 
