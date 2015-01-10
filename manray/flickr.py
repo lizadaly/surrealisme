@@ -146,25 +146,32 @@ def brightness(im):
 
 def process_photos(photos):
 
-    # Randomize
+    # Randomize to get less predictable results across multiple runs
     random.shuffle(photos['non_faces'])
     random.shuffle(photos['faces'])
-    
-    for photo in photos['non_faces']:
+
+    # Start with all the faces and try to match them to candidate non-face photos that will
+    # produce interesting results
+    for photo in photos['faces']:
 
         if not os.path.exists(BUILD_DIR):
             os.makedirs(BUILD_DIR)
 
+        # Calculate a black and white histogram to try to find a matching non-face photo that will have a different
+        # composition and produce a compelling result.
         hist = cv2.calcHist([photo._cv_image],[0],None,[256],[0,256])
+
         # Find one that's very different
         method = cv2.cv.CV_COMP_BHATTACHARYYA
         
         for p2 in photos['non_faces']:
             hist2 = cv2.calcHist([p2._cv_image],[0],None,[256],[0,256])
+
             # Smaller (0) is more similar than very different (1)
             difference = cv2.compareHist(hist, hist2, method)
-            if difference > 0.5:
-                print "Difference was {}".format(difference)
+
+            # Play with this value to find something you like
+            if difference > 0.8:
                 
                 # Choose this image
                 im = Image.open(StringIO(photo._img_io))
@@ -181,12 +188,17 @@ def process_photos(photos):
                     brightness2 = brightness(im2)
                 except:
                     continue
+
                 if brightness1 < brightness2:
+
+                    # Some fraction of the time, solarize the background image, because
+                    # the surrealists were into that shit
                     if random.randint(1, 10) < 5:
                         im = ImageOps.solarize(im)
                         im = im.filter(ImageFilter.GaussianBlur(random.randint(1,5)))
                         im = ImageOps.grayscale(im)
-                        im2 = ImageOps.grayscale(im2)                
+                        im2 = ImageOps.grayscale(im2)
+                        
                     im = im.filter(ImageFilter.SMOOTH_MORE)                                        
                     im2 = ImageOps.invert(im2)
                     im = ImageChops.screen(im, im2)

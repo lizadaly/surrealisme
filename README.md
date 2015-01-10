@@ -1,15 +1,13 @@
-Seraphs: NaNoGenMo2014
+random.chance: A procedurally generated surrealist photoset
 =============
 
-Generate a 50,000+ word "book" based on the Voynich Manuscript. Uses the following resources:
+Attempt to generate images that resemble surrealist portrait photomontages in the style of Man Ray. Uses the following resources:
 
-* The Flickr API and Internet Archive Commons account to grab 18th century images based on specific themes like "biology" and "alchemy."
-* Processes the resulting illustrations to match background colors and discard undesirable images.
-* Uses a randomized corpus of the original Voynich Manuscript (from the EVA transcription) remapped to a public domain Voynich-like font.
-* Generates a set of themed "folios" based on the themes from the original manuscript.
-* Converts the output using CSS3 paged media to print-ready PDF (requires a local installation of Prince XML).
+* The Flickr API and Internet Archive Commons account to grab period images
+* Uses face detection algorithms packaged with OpenCV (http://opencv.org/) to identify human faces for candidate portraits
+* Blends face and non-face images using some best guesses about optimal blending algorithms (multiply or screen work best)
 
-The source code in this repository is in the public domain. Note that a mix of commercial and closed-source software is necessary to generate the final output.
+The source code in this repository is in the public domain. 
 
 Installation
 ------------
@@ -29,6 +27,8 @@ Install the dependencies:
 python setup.py develop
 ```
 
+*Installing numpy and OpenCV are a huge pain. You've been warned.*
+
 Get a Flickr API key and add it to a directory called `secret`:
 
 ```
@@ -37,19 +37,17 @@ cat "FLICKR_KEY = 'YOUR-KEY-HERE'" > secret/__init__.py
 cat "FLICKR_SECRET = 'YOUR-SECRET-HERE'" >> secret/__init__.py
 ```
 
-Install PrinceXML (http://princexml.com/) locally.
-
 Run the program:
 
 ```
-python seraphs/generate.py
+python manray/flickr.py
 ```
 
-The program should go off and acquire a _lot_ of images from Flickr, randomize them, and generate a PDF somewhere in the 400-page range.
+The program should go off and acquire a _lot_ of images from Flickr and try to generate nice output. Depending on your search parameters you can expect to get around 10 decent images out of each run.
 
-Once it runs, it will cache the resulting images (as local pickle files) in `seraphs/cache` and pull a random set from those. Delete that directory to re-acquire the assets from Flickr.
+Once it runs, it will cache the resulting images (as local pickle files) in `manray/cache` and pull a random set from those. Delete that directory to re-acquire the assets from Flickr.
 
-The output will be `seraphs/build/book.pdf`. It will be _very large_ (more than 1 gigabyte).
+The output will be in `manray/build/`.
 
 Example output
 ==============
@@ -64,11 +62,5 @@ Example output
 ![Page](examples/page8.png)
 ![Page](examples/page9.png)
 ![Page](examples/page10.png)
-![Page](examples/page11.png)
-![Page](examples/page12.png)
-![Page](examples/page13.png)
-![Page](examples/page14.png)
-![Page](examples/page15.png)
-![Page](examples/page16.png)
 
 
