@@ -54,23 +54,22 @@ The output will be in `manray/build/`.
 
 Example output
 ==============
-`
-![Page](examples/page1.jpg)
-![Page](examples/page2.jpg)
-![Page](examples/page3.jpg)
-![Page](examples/page4.jpg)
-![Page](examples/page5.jpg)
-![Page](examples/page6.jpg)
-![Page](examples/page7.jpg)
-![Page](examples/page8.jpg)
-![Page](examples/page9.jpg)
-![Page](examples/page10.jpg)
+
 ![Page](examples/page11.jpg)
-![Page](examples/page12.jpg)
-![Page](examples/page13.jpg)
 ![Page](examples/page14.jpg)
 ![Page](examples/page15.jpg)
 ![Page](examples/page16.jpg)
 ![Page](examples/page17.jpg)
+![Page](examples/page1.jpg)
+![Page](examples/page2.jpg)
+![Page](examples/page3.jpg)
+![Page](examples/page5.jpg)
+![Page](examples/page7.jpg)
+![Page](examples/page8.jpg)
+![Page](examples/page9.jpg)
+![Page](examples/page10.jpg)
+![Page](examples/page12.jpg)
+![Page](examples/page13.jpg)
+
 
 
