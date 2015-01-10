@@ -7,7 +7,7 @@ A procedurally generated surrealist photoset
 Attempt to generate images that resemble surrealist portrait photomontages in the style of Man Ray. Uses the following resources:
 
 * The Flickr API and Internet Archive Commons account to grab period images
-* Uses face detection algorithms packaged with OpenCV (http://opencv.org/) to identify human faces for candidate portraits
+* Runs face detection (packaged with OpenCV http://opencv.org/) to identify human faces for candidate portraits
 * Blends face and non-face images using some best guesses about optimal blending algorithms (multiply or screen work best)
 
 The source code in this repository is in the public domain. 
@@ -21,7 +21,7 @@ Set up a virtual environment:
 virtualenv ve
 ````
 
-Ensure that you have various JPEG libraries installed (for OS X users, `brew install libjpeg` and `brew install libpng`).
+Ensure that you have various image libraries installed (for OS X users, `brew install libjpeg` and `brew install libpng`).
 
 Install the dependencies:
 
