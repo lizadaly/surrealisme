@@ -12,7 +12,7 @@ Attempt to generate images that resemble surrealist portrait photomontages in th
 
 The source code in this repository is in the public domain. 
 
-A 140-page PDF book (best viewed as 2-up) is available https://www.dropbox.com/s/0p7ikz9baw2i7ad/random-chance.pdf?dl=0 *(Warning: 240 MB)*
+A 140-page PDF book (best viewed as 2-up) is available https://www.dropbox.com/s/0p7ikz9baw2i7ad/random-chance.pdf?dl=0 *(Warning: 240 MB)* or in print from Blurb http://www.blurb.com/b/5936745-random-chance
 
 
 Installation
