@@ -15,9 +15,9 @@ The source code in this repository is in the public domain.
 The book
 --------
 
-[Browse all 140 pages online] (http://lizadaly.com/random-chance/pages/#/0)
+[Browse all 140 pages online.] (http://lizadaly.com/random-chance/pages/#/0)
 
-A 140-page [PDF version] (https://www.dropbox.com/s/0p7ikz9baw2i7ad/random-chance.pdf?dl=0), best viewed as 2-up, is also available  *(Warning: 240 MB)* or [in print from Blurb] (http://www.blurb.com/b/5936745-random-chance)
+A 140-page [PDF version] (https://www.dropbox.com/s/0p7ikz9baw2i7ad/random-chance.pdf?dl=0), best viewed as 2-up, is also available  *(Warning: 240 MB)* or [in print from Blurb.] (http://www.blurb.com/b/5936745-random-chance)
 
 
 Source code installation
