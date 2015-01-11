@@ -15,7 +15,7 @@ The source code in this repository is in the public domain.
 The book
 --------
 
-After dozens of code runs I selected the following images and laid them out into a book with two-page spreads. No changes were made to the images themselves. [Browse all 140 pages online.] (http://lizadaly.com/random-chance/pages/#/0)
+After dozens of code runs I selected my favorite images and laid them out into a book with two-page spreads. No changes were made to the images themselves. [Browse all 140 pages online.] (http://lizadaly.com/random-chance/pages/#/0)
 
 A 140-page [PDF version] (https://www.dropbox.com/s/0p7ikz9baw2i7ad/random-chance.pdf?dl=0), best viewed as 2-up, is also available  *(Warning: 240 MB)* or [in print from Blurb.] (http://www.blurb.com/b/5936745-random-chance)
 
