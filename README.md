@@ -12,6 +12,9 @@ Attempt to generate images that resemble surrealist portrait photomontages in th
 
 The source code in this repository is in the public domain. 
 
+A 140-page PDF book (best viewed as 2-up) is available https://www.dropbox.com/s/0p7ikz9baw2i7ad/random-chance.pdf?dl=0 *(Warning: 240 MB)*
+
+
 Installation
 ------------
 
@@ -54,6 +57,8 @@ The output will be in `manray/build/`.
 
 Example output
 ==============
+
+A 140-page PDF book (best viewed as 2-up) is available https://www.dropbox.com/s/0p7ikz9baw2i7ad/random-chance.pdf?dl=0 *(Warning: 240 MB)*
 
 ![Page](examples/page11.jpg)
 ![Page](examples/page14.jpg)
