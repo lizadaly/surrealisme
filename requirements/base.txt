@@ -7,4 +7,3 @@ pylint
 Pillow
 coloredlogs
 numpy
-cv2

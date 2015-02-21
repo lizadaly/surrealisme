@@ -45,6 +45,20 @@ python setup.py develop
 
 *Installing numpy and OpenCV are a huge pain. You've been warned.*
 
+This worked for me:
+
+https://jjyap.wordpress.com/2014/05/24/installing-opencv-2-4-9-on-mac-osx-with-python-support/
+
+(Your version of OpenCV will be newer; link the files into your ve.)
+
+In manray/__init__.py, update this:
+
+```
+CASCADE_FILE = '/usr/local/Cellar/opencv/2.4.10.1/share/OpenCV/haarcascades/haarcascade_frontalface_default.xml'
+```
+
+If numpy doesn't install, uninstall python via brew and update it, setuptools, and pip. `pip install numpy` should then work.
+
 Get a Flickr API key and add it to a directory called `secret`:
 
 ```
