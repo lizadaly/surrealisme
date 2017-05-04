@@ -82,7 +82,7 @@ The output will be in `manray/build/`.
 Example output
 ==============
 
-[Browse all 140 pages online] (http://lizadaly.com/random-chance/pages/#/0)
+[Browse all 140 pages online] (https://www.flickr.com/photos/lizadaly/albums/72157648041689654)
 
 ![Page](examples/page14.jpg)
 ![Page](examples/page15.jpg)
